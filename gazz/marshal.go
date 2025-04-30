@@ -133,7 +133,8 @@ func MarshalTag(val any, fieldParms *StructTags) ([]byte, error) {
 	var tag int
 	var tclass int
 	rv := reflect.ValueOf(val)
-	if rv.Kind() == reflect.Struct {
+	switch rv.Kind() {
+	case reflect.Struct:
 		allPointers := true
 		for i := 0; i < rv.NumField(); i++ {
 			fieldValue := rv.Field(i)
@@ -146,24 +147,33 @@ func MarshalTag(val any, fieldParms *StructTags) ([]byte, error) {
 		} else {
 			return MarshalSequence(rv)
 		}
-	}
-	switch v := val.(type) {
-	case int:
-		tag = TagInteger
-		tclass = ClassUniversal
-		codec = Integer(v)
-	case []byte:
-		tag = TagOctetString
-		tclass = ClassUniversal
-		codec = OctetString(v)
-	case OctetString:
-		tag = TagOctetString
-		tclass = ClassUniversal
-		codec = OctetString(v)
-	case string:
+	case reflect.Slice:
+		if v, ok := val.([]byte); ok {
+			tag = TagOctetString
+			tclass = ClassUniversal
+			codec = OctetString(v)
+		} else if v, ok := val.(OctetString); ok {
+			tag = TagOctetString
+			tclass = ClassUniversal
+			codec = v
+		} else {
+			if rv.Len() == 0 {
+				return nil, nil
+			}
+			if rv.Len() == 1 {
+				fieldParms.Explicit = true
+				return MarshalTag(rv.Index(0).Interface(), fieldParms)
+			}
+			return nil, &MarshalError{Message: fmt.Sprintf("unsupported type: %T", val)}
+		}
+	case reflect.String:
 		tag = TagPrintableString
 		tclass = ClassUniversal
-		codec = OctetString(v)
+		codec = OctetString(val.(string))
+	case reflect.Int:
+		tag = TagInteger
+		tclass = ClassUniversal
+		codec = Integer(val.(int))
 	default:
 		return nil, &MarshalError{Message: fmt.Sprintf("unsupported type: %T", val)}
 	}

@@ -94,6 +94,6 @@ func TestMarshalWithOptional1(t *testing.T) {
 	val := StructWithOptional1{MyString: "bar"}
 	checkMarshal(t, val)
 
-	//val = StructWithOptional1{MyString: "bar", MyInt: []int{126}}
-	//checkMarshal(t, val)
+	val = StructWithOptional1{MyString: "bar", MyInt: []int{126}}
+	checkMarshal(t, val)
 }
