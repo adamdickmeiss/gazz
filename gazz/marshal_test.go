@@ -7,14 +7,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func checkMarshal(t *testing.T, val any) {
-	expected, err := asn1.Marshal(val)
+func checkMarshal2(t *testing.T, vala any, valb any) {
+	expected, err := asn1.Marshal(vala)
 	assert.NoError(t, err)
 
-	bytes, err := Marshal(val)
+	bytes, err := Marshal(valb)
 	assert.NoError(t, err)
 
 	assert.Equal(t, expected, bytes)
+}
+
+func checkMarshal(t *testing.T, val any) {
+	checkMarshal2(t, val, val)
 }
 
 func TestMarshalInteger(t *testing.T) {
@@ -96,4 +100,18 @@ func TestMarshalWithOptional1(t *testing.T) {
 
 	val = StructWithOptional1{MyString: "bar", MyInt: []int{126}}
 	checkMarshal(t, val)
+}
+
+type StructWithBitStringA struct {
+	Options asn1.BitString `asn1:"tag:6"`
+}
+
+type StructWithBitStringB struct {
+	Options BitString `asn1:"tag:6"`
+}
+
+func TestMarshalWithBitString(t *testing.T) {
+	vala := StructWithBitStringA{Options: asn1.BitString{Bytes: []byte{0x01, 0x02}, BitLength: 12}}
+	valb := StructWithBitStringB{Options: BitString{Bytes: []byte{0x01, 0x02}, BitLength: 12}}
+	checkMarshal2(t, vala, valb)
 }

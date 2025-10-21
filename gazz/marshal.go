@@ -133,8 +133,15 @@ func MarshalTag(val any, fieldParms *StructTags) ([]byte, error) {
 	var tag int
 	var tclass int
 	rv := reflect.ValueOf(val)
+	// fmt.Printf("Marshalling value of type %T kind=%s\n", val, rv.Kind())
 	switch rv.Kind() {
 	case reflect.Struct:
+		if v, ok := val.(BitString); ok {
+			tag = TagBitString
+			tclass = ClassUniversal
+			codec = BitString(v)
+			break
+		}
 		allPointers := true
 		for i := 0; i < rv.NumField(); i++ {
 			fieldValue := rv.Field(i)
