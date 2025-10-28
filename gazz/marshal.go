@@ -1,6 +1,7 @@
 package gazz
 
 import (
+	"encoding/asn1"
 	"fmt"
 	"reflect"
 )
@@ -169,6 +170,14 @@ func MarshalTag(val any, fieldParms *StructTags) ([]byte, error) {
 			tag = TagBitString
 			tclass = ClassUniversal
 			codec = rv.Convert(reflect.TypeOf(BitString{})).Interface().(BitString)
+		} else if v, ok := val.(ObjectIdentifier); ok {
+			tag = TagOID
+			tclass = ClassUniversal
+			codec = v
+		} else if v, ok := val.(asn1.ObjectIdentifier); ok {
+			tag = TagOID
+			tclass = ClassUniversal
+			codec = ObjectIdentifier(v)
 		} else if v, ok := val.([]byte); ok {
 			tag = TagOctetString
 			tclass = ClassUniversal
@@ -190,11 +199,11 @@ func MarshalTag(val any, fieldParms *StructTags) ([]byte, error) {
 	case reflect.Int:
 		tag = TagInteger
 		tclass = ClassUniversal
-		codec = Integer(val.(int))
+		codec = Integer(rv.Convert(reflect.TypeOf(int(0))).Interface().(int))
 	case reflect.Bool:
 		tag = TagBoolean
 		tclass = ClassUniversal
-		codec = Bool(val.(bool))
+		codec = Bool(rv.Convert(reflect.TypeOf(bool(false))).Interface().(bool))
 	case reflect.Pointer:
 		if rv.IsNil() {
 			return nil, nil

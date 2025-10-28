@@ -2,6 +2,7 @@ package gazz
 
 import (
 	"encoding/asn1"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,15 +27,36 @@ func TestMarshalInteger(t *testing.T) {
 	checkMarshal(t, i)
 }
 
-func TestMarshalString(t *testing.T) {
-	var s string = "hello"
-	checkMarshal(t, s)
+func TestMarshalBool(t *testing.T) {
+	b := true
+	checkMarshal(t, b)
+	b = false
+	checkMarshal(t, b)
 }
+
+func TestMarshalString(t *testing.T) {
+	s := "hello"
+	checkMarshal(t, s)
+	empty := ""
+	checkMarshal(t, empty)
+	longer := strings.Repeat("x", 1000)
+	checkMarshal(t, longer)
+}
+
+// func TestMarshalOID(t *testing.T) {
+// 	var b asn1.ObjectIdentifier = []int{1, 2, 840, 113549}
+// 	checkMarshal(t, b)
+// }
 
 func TestMarshalByteSlice(t *testing.T) {
 	var b []byte = []byte{0x97, 0x98}
 	checkMarshal(t, b)
 }
+
+// func TestMarshalIntSlice(t *testing.T) {
+// 	var b []int = []int{0x97, 0x98}
+// 	checkMarshal(t, b)
+// }
 
 type StructNoTag struct {
 	MyInt    int
@@ -42,7 +64,7 @@ type StructNoTag struct {
 	MyString string
 }
 
-func TestMarshalNoTag(t *testing.T) {
+func TestMarshalSequenceNoTags(t *testing.T) {
 	my := StructNoTag{
 		MyInt:    0x12345678,
 		MyOctet:  OctetString{0x01, 0x02, 0x03},
@@ -51,18 +73,20 @@ func TestMarshalNoTag(t *testing.T) {
 	checkMarshal(t, my)
 }
 
-type MyString string
+type CounterType int
+type NameType string
+type MyOctetType OctetString
 type StructNoTag2 struct {
-	MyInt    int
-	MyOctet  OctetString
-	MyString MyString
+	MyInt   CounterType
+	MyOctet MyOctetType
+	MyName  NameType
 }
 
-func TestMarshalNoTag2(t *testing.T) {
+func TestMarshalSequenceTypes(t *testing.T) {
 	my := StructNoTag2{
-		MyInt:    0x12345678,
-		MyOctet:  OctetString{0x01, 0x02, 0x03},
-		MyString: "bar",
+		MyInt:   0x12345678,
+		MyOctet: MyOctetType{0x01, 0x02, 0x03},
+		MyName:  "bar",
 	}
 	checkMarshal(t, my)
 }
